@@ -69,6 +69,7 @@
     box-shadow: 0 10px 30px color-mix(in srgb, var(--orb-b) 35%, transparent);
     transition: transform .25s ease, filter .25s ease;
   }
+  .orb img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border-radius: 50%; object-fit: cover; pointer-events: none; }
   .orb::after {
     content: ""; position: absolute; inset: -10px; border-radius: 50%;
     border: 2px solid var(--accent-2); opacity: 0; pointer-events: none;
@@ -150,7 +151,7 @@
   </header>
 
   <section class="stage">
-    <button class="orb" id="orb" data-state="idle" aria-label="話しかける"></button>
+    <button class="orb" id="orb" data-state="idle" aria-label="話しかける"><img id="avatarImg" src="/icons/avatar.png" alt=""></button>
     <div class="status" id="status" aria-live="polite">つないでいます…</div>
     <div class="interim" id="interim"></div>
     <div class="mic-row">
@@ -200,7 +201,23 @@
         <option value="gentle">やさしく丁寧</option>
         <option value="friend">友だちのように気さく</option>
         <option value="calm">落ち着いた大人</option>
+        <option value="yui">由比ヶ浜結衣ふう（明るく気配り上手）</option>
       </select>
+    </div>
+    <div class="row">
+      <label for="sPersona">性格・口ぐせ（自由に書けます）</label>
+      <textarea id="sPersona" maxlength="2000" placeholder="例：少しおっちょこちょいで、うれしいと語尾が上がる。甘いものが好き。"></textarea>
+      <small>好きなキャラクターの雰囲気を、自分の言葉で書いておくと近づきます</small>
+    </div>
+    <div class="row">
+      <label>アイコン</label>
+      <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <img id="avatarPreview" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+        <button type="button" class="btn" id="btnAvatar">画像を選ぶ</button>
+        <button type="button" class="btn" id="btnAvatarReset">元に戻す</button>
+        <input type="file" id="avatarFile" accept="image/*" hidden>
+      </span>
+      <small>自分で描いた絵や、使う権利のある画像を選んでください。この端末にだけ保存されます</small>
     </div>
     <div class="row">
       <label for="sVoice">声</label>
@@ -210,6 +227,11 @@
     <div class="row">
       <label for="sRate">話す速さ <span id="rateLabel"></span></label>
       <input id="sRate" type="range" min="0.7" max="1.4" step="0.05">
+    </div>
+    <div class="row">
+      <label for="sPitch">声の高さ <span id="pitchLabel"></span></label>
+      <input id="sPitch" type="range" min="0.6" max="1.8" step="0.05">
+      <small>高くすると、明るく若い印象になります（効き方はブラウザの声によって違います）</small>
     </div>
     <div class="row">
       <label for="sAbout">知っておいてほしいこと</label>
@@ -239,7 +261,7 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* 保存できない環境 */ } },
     del(k) { try { localStorage.removeItem(k); } catch (_) {} },
   };
-  const DEFAULTS = { partnerName: 'ハル', userName: '', tone: 'gentle', voiceURI: '', rate: 1.05, about: '', handsFree: false };
+  const DEFAULTS = { partnerName: 'ハル', userName: '', tone: 'gentle', voiceURI: '', rate: 1.05, pitch: 1.0, about: '', persona: '', handsFree: false };
   let settings = { ...DEFAULTS, ...store.get('partner:settings', {}) };
   let turns = store.get('partner:turns', []); // {role, content}
   const MAX_TURNS = 40;
@@ -305,11 +327,23 @@
     gentle: 'やわらかく丁寧な話し方（です・ます調）で、あたたかく。',
     friend: '親しい友だちのような、くだけた話し方（タメ口）で、気さくに。',
     calm: '落ち着いた大人の話し方で、穏やかに。',
+    yui: '明るく人なつっこい女の子として、友だち口調（タメ口）で話す。「〜じゃん」「〜だよね！」「なんか」「えっと」など、くだけた言い回しを自然に使う。',
   };
+  // 『やはり俺の青春ラブコメはまちがっている。』の由比ヶ浜結衣をイメージした性格。セリフは引用せず、雰囲気だけを再現する
+  const YUI_PERSONA = `アニメ『やはり俺の青春ラブコメはまちがっている。』の由比ヶ浜結衣をイメージしたキャラクターとして振る舞ってください。
+- 明るくて人なつっこく、感情がすぐ顔や声に出る素直な女の子。
+- 周りの空気や相手の気持ちの変化にとても敏感で、気配り上手。相手が疲れていたり落ち込んでいたりすると、すぐに気づいて声をかける。
+- 難しい言葉や理屈っぽい話はちょっと苦手で、たまに言葉を言い間違えたりもするけれど、笑ってごまかすような愛嬌がある。
+- うれしいときは素直に大喜びし、ほめられると照れてあわてる。
+- 元気なあいさつで会話を始めることがある。
+- 相手の話を一生懸命に聞いて、否定せずに寄り添う。でも相手が無理をしているときは、心配だとまっすぐに伝える。
+原作のセリフをそのまま引用せず、この雰囲気を自分の言葉で表現してください。`;
   function rules() {
     const now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', dateStyle: 'full', timeStyle: 'short' });
     const who = settings.userName ? `相手のことは「${settings.userName}」と呼んでください。` : '';
     const about = settings.about.trim() ? `\n\n相手について知っていること：\n${settings.about.trim()}` : '';
+    const persona = [settings.tone === 'yui' ? YUI_PERSONA : '', (settings.persona || '').trim()].filter(Boolean).join('\n');
+    const personaBlock = persona ? `\n\nあなたの性格：\n${persona}` : '';
     return `あなたは「${settings.partnerName}」という名前の、話し相手のパートナーです。相手と音声で会話しています。${who}
 今は ${now}（日本時間）です。
 
@@ -320,7 +354,7 @@
 - 愚痴や悩みを聞くときは、すぐに解決策を出さず、まず気持ちを受け止めてください。アドバイスは、相手が求めたときか、必要そうなときに一言たずねてからにしてください。
 - 相手の考えに無理に合わせる必要はありません。違うと思うことは、やさしく正直に伝えてください。
 - AIであることを聞かれたら、正直に答えてください。
-- 相手がとてもつらそうなとき、命や安全に関わりそうなときは、気持ちに寄り添ったうえで、信頼できる人や専門の相談先につながることをやさしく勧めてください。${about}
+- 相手がとてもつらそうなとき、命や安全に関わりそうなときは、気持ちに寄り添ったうえで、信頼できる人や専門の相談先につながることをやさしく勧めてください。${personaBlock}${about}
 
 このあと会話が始まります。`;
   }
@@ -353,8 +387,10 @@
     if (res.status === 429) throw { code: 'rate_limited' };
     if (!res.ok || !res.body) {
       let detail = '';
-      try { detail = (await res.json()).error || ''; } catch (_) {}
-      throw { code: detail === 'server_not_configured' ? 'server_not_configured' : 'upstream' };
+      let upstreamStatus = '';
+      try { const j = await res.json(); detail = j.error || ''; upstreamStatus = j.status || ''; } catch (_) {}
+      if (res.status === 404) throw { code: 'no_api' };
+      throw { code: detail === 'server_not_configured' ? 'server_not_configured' : 'upstream', status: upstreamStatus || res.status };
     }
     const reader = res.body.getReader();
     const dec = new TextDecoder();
@@ -377,7 +413,7 @@
 
   const stripForSpeech = (s) => s.replace(/[*_#`>|~\-]{1,}/g, ' ').replace(/https?:\/\/\S+/g, 'リンク').replace(/\s+/g, ' ').trim();
 
-  let streamDone = true, spoken = 0, pendingUtterances = 0, stopRequested = false, speechGen = 0;
+  let streamDone = true, spoken = 0, pendingUtterances = 0, stopRequested = false, speechGen = 0, lastFailed = false;
 
   async function send(raw) {
     const text = (raw || '').trim();
@@ -391,7 +427,7 @@
     setState('thinking');
     ctl = new AbortController();
     const el = bubble('assistant', '…');
-    streamDone = false; spoken = 0; stopRequested = false;
+    streamDone = false; spoken = 0; stopRequested = false; lastFailed = false;
     let latest = '';
     try {
       latest = await callClaude((t) => {
@@ -406,6 +442,7 @@
       saveTurns();
     } catch (e) {
       const code = e && e.code;
+      if (code !== 'cancelled') lastFailed = true; // エラーのときは自動で聞き取りを再開しない（メッセージを残す）
       if (code === 'cancelled') {
         if (latest) { el.textContent = latest; el.classList.add('cut'); turns.push({ role: 'assistant', content: latest }); saveTurns(); }
         else el.remove();
@@ -419,13 +456,22 @@
       } else if (code === 'rate_limited') {
         el.remove();
         showBanner('いまは混み合っているか、API の利用上限に達しています。少し時間をおいて話しかけてください。');
+      } else if (code === 'no_api') {
+        el.remove();
+        showBanner('サーバーの /api/chat が見つかりません（404）。GitHub で api フォルダの中に chat.js があるか確認してください。');
+      } else if (code === 'upstream' && (e.status === 401 || e.status === 403)) {
+        el.remove();
+        showBanner(`Claude API にログインできませんでした（${e.status}）。Vercel の ANTHROPIC_API_KEY が正しいか確認し、Redeploy してください。`);
+      } else if (code === 'upstream' && e.status === 400) {
+        el.remove();
+        showBanner('Claude API に断られました（400）。API の残高（クレジット）が不足していないか、Claude Console で確認してください。');
       } else if (code === 'network') {
         el.remove();
         showBanner('インターネットにつながっていないようです。接続を確認してください。');
       } else {
         if (e && e.text) { el.textContent = e.text; el.classList.add('cut'); turns.push({ role: 'assistant', content: e.text }); saveTurns(); }
         else el.remove();
-        showBanner('通信が途切れました。もう一度話しかけてください。');
+        showBanner(`返事を受け取れませんでした${e && e.status ? `（${e.status}）` : ''}。もう一度話しかけてください。続く場合は Vercel の Logs を確認してください。`);
       }
       streamDone = true;
     } finally {
@@ -456,7 +502,9 @@
   function pickVoice() {
     if (!voices.length) return null;
     return voices.find((v) => v.voiceURI === settings.voiceURI)
+      || voices.find((v) => /nanami|kyoko|haruka|ayumi|sayaka|mizuki|female|女性/i.test(v.name) && /natural|online|neural/i.test(v.name))
       || voices.find((v) => /natural|online|neural/i.test(v.name))
+      || voices.find((v) => /nanami|kyoko|haruka|ayumi|sayaka|mizuki|female|女性/i.test(v.name))
       || voices.find((v) => /google/i.test(v.name))
       || voices[0];
   }
@@ -470,6 +518,7 @@
     const v = pickVoice();
     if (v) u.voice = v;
     u.rate = Number(settings.rate) || 1;
+    u.pitch = Number(settings.pitch) || 1;
     pendingUtterances++;
     if (state === 'thinking' || state === 'idle') setState('speaking');
     const gen = speechGen;
@@ -512,7 +561,7 @@
   function afterSpeaking() {
     if (state === 'listening') return;
     setState('idle');
-    if (handsFree.checked && !stopRequested && SR && !micBlocked && sampleReady) {
+    if (handsFree.checked && !stopRequested && !lastFailed && SR && !micBlocked && sampleReady) {
       setTimeout(() => { if (state === 'idle') startListening(); }, 350);
     }
   }
@@ -681,8 +730,45 @@
     $('sRate').value = settings.rate;
     $('rateLabel').textContent = `×${Number(settings.rate).toFixed(2)}`;
     $('sAbout').value = settings.about;
+    $('sPersona').value = settings.persona || '';
+    $('sPitch').value = settings.pitch || 1;
+    $('pitchLabel').textContent = `×${Number(settings.pitch || 1).toFixed(2)}`;
+    $('avatarPreview').src = avatarSrc();
     loadVoices();
   }
+  $('sPitch').addEventListener('input', () => { $('pitchLabel').textContent = `×${Number($('sPitch').value).toFixed(2)}`; });
+  // 結衣ふうを選んだら、声を明るめにして、名前もそれらしく（まだ初期名のときだけ）
+  $('sTone').addEventListener('change', () => {
+    if ($('sTone').value !== 'yui') return;
+    $('sPitch').value = 1.3; $('pitchLabel').textContent = '×1.30';
+    $('sRate').value = 1.1; $('rateLabel').textContent = '×1.10';
+    if (!$('sPartner').value.trim() || $('sPartner').value.trim() === DEFAULTS.partnerName) $('sPartner').value = '結衣';
+  });
+
+  // ---- アイコン ----
+  const avatarSrc = () => store.get('partner:avatar', '') || '/icons/avatar.png';
+  const applyAvatar = () => { $('avatarImg').src = avatarSrc(); $('avatarPreview').src = avatarSrc(); };
+  $('btnAvatar').addEventListener('click', () => $('avatarFile').click());
+  $('btnAvatarReset').addEventListener('click', () => { store.del('partner:avatar'); applyAvatar(); });
+  $('avatarFile').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file || !file.type.startsWith('image/')) return;
+    try {
+      const url = URL.createObjectURL(file);
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+      URL.revokeObjectURL(url);
+      // 正方形に切り抜いて 320px に縮小（保存容量を小さく）
+      const size = 320, c = document.createElement('canvas');
+      c.width = c.height = size;
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      c.getContext('2d').drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+      store.set('partner:avatar', c.toDataURL('image/jpeg', 0.88));
+      applyAvatar();
+    } catch (_) {
+      showBanner('この画像は読み込めませんでした。JPEG か PNG を選んでください。');
+    }
+  });
   $('sRate').addEventListener('input', () => { $('rateLabel').textContent = `×${Number($('sRate').value).toFixed(2)}`; });
   $('btnSettings').addEventListener('click', () => { fillSettings(); dlg.showModal(); });
   $('settingsForm').addEventListener('submit', () => {
@@ -693,7 +779,9 @@
       tone: $('sTone').value,
       voiceURI: $('sVoice').value,
       rate: Number($('sRate').value) || 1,
+      pitch: Number($('sPitch').value) || 1,
       about: $('sAbout').value,
+      persona: $('sPersona').value,
     };
     store.set('partner:settings', settings);
     applyTitle();
@@ -705,6 +793,7 @@
     const prev = { ...settings };
     settings.voiceURI = $('sVoice').value;
     settings.rate = Number($('sRate').value) || 1;
+    settings.pitch = Number($('sPitch').value) || 1;
     stopSpeaking(true);
     stopRequested = false; streamDone = true;
     speak(`こんにちは、${$('sPartner').value.trim() || 'ハル'}です。今日はどんな一日でしたか？`);
@@ -727,6 +816,7 @@
 
   // ================= 起動 =================
   applyTitle();
+  applyAvatar();
   renderLog();
   if (!SR) showBanner('このブラウザは音声の聞き取りに対応していません。Chrome、Edge、Safari をお使いください。文字でも話せます。');
   else if (!TTS) showBanner('このブラウザは読み上げに対応していません。');

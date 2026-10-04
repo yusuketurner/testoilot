@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="40%" cy="28%" r="85%">
+      <stop offset="0" stop-color="#dff3f0"/>
+      <stop offset=".55" stop-color="#9fd6cd"/>
+      <stop offset="1" stop-color="#4f9e94"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9875c"/>
+      <stop offset=".6" stop-color="#9a6a45"/>
+      <stop offset="1" stop-color="#7d5235"/>
+    </linearGradient>
+    <linearGradient id="hairHi" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffe2bf" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#ffe2bf" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ffe2bf" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="iris" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d3f6e"/>
+      <stop offset=".55" stop-color="#2f6fb3"/>
+      <stop offset="1" stop-color="#7fc3f0"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0e6"/>
+      <stop offset="1" stop-color="#fde0d0"/>
+    </linearGradient>
+    <clipPath id="c"><circle cx="256" cy="256" r="256"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <!-- きらきら -->
+    <g fill="#ffffff" opacity=".85">
+      <path d="M78 120 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z"/>
+      <path d="M440 96 l4 11 11 4 -11 4 -4 11 -4 -11 -11 -4 11 -4z"/>
+      <path d="M452 300 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z"/>
+    </g>
+    <!-- 後ろ髪（ロング） -->
+    <path d="M110 230 C96 120 170 70 256 70 C342 70 416 120 402 230 C410 330 420 430 440 520 L72 520 C92 430 102 330 110 230 Z" fill="url(#hair)"/>
+    <!-- 服 -->
+    <path d="M110 520 C118 440 176 404 256 402 C336 404 394 440 402 520 Z" fill="#ffffff"/>
+    <path d="M168 520 C176 462 208 430 256 426 C304 430 336 462 344 520 Z" fill="#3a5d8f"/>
+    <path d="M226 410 L256 446 L286 410 Z" fill="#d94c5a"/>
+    <!-- 首 -->
+    <path d="M230 352 L282 352 L280 410 C268 418 244 418 232 410 Z" fill="#f8d6c4"/>
+    <!-- 顔（あごを少しとがらせたアニメ風） -->
+    <path d="M152 236 C152 168 198 132 256 132 C314 132 360 168 360 236 C360 300 318 358 256 372 C194 358 152 300 152 236 Z" fill="url(#skin)"/>
+    <!-- ほほ -->
+    <ellipse cx="192" cy="296" rx="24" ry="11" fill="#ff9fa8" opacity=".5"/>
+    <ellipse cx="320" cy="296" rx="24" ry="11" fill="#ff9fa8" opacity=".5"/>
+    <g stroke="#ff8a96" stroke-width="2.5" stroke-linecap="round" opacity=".7">
+      <path d="M180 292 l6 -8"/><path d="M192 292 l6 -8"/><path d="M204 292 l6 -8"/>
+      <path d="M308 292 l6 -8"/><path d="M320 292 l6 -8"/><path d="M332 292 l6 -8"/>
+    </g>
+    <!-- 目（大きめ・アニメ風） -->
+    <g>
+      <path d="M170 232 Q206 214 238 230" stroke="#3b2618" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <ellipse cx="206" cy="260" rx="26" ry="34" fill="#ffffff"/>
+      <ellipse cx="208" cy="264" rx="22" ry="30" fill="url(#iris)"/>
+      <ellipse cx="208" cy="268" rx="10" ry="14" fill="#14294a"/>
+      <ellipse cx="198" cy="250" rx="8" ry="10" fill="#ffffff"/>
+      <circle cx="218" cy="282" r="4" fill="#ffffff" opacity=".9"/>
+      <path d="M176 238 Q206 222 238 236" stroke="#2a1a10" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+      <path d="M274 230 Q306 214 342 232" stroke="#3b2618" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <ellipse cx="306" cy="260" rx="26" ry="34" fill="#ffffff"/>
+      <ellipse cx="304" cy="264" rx="22" ry="30" fill="url(#iris)"/>
+      <ellipse cx="304" cy="268" rx="10" ry="14" fill="#14294a"/>
+      <ellipse cx="294" cy="250" rx="8" ry="10" fill="#ffffff"/>
+      <circle cx="314" cy="282" r="4" fill="#ffffff" opacity=".9"/>
+      <path d="M274 236 Q306 222 336 238" stroke="#2a1a10" stroke-width="5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- まゆ -->
+    <path d="M182 204 Q204 196 226 202" stroke="#8a5a38" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M286 202 Q308 196 330 204" stroke="#8a5a38" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- 鼻と口 -->
+    <path d="M254 300 l4 4" stroke="#e0a890" stroke-width="3" stroke-linecap="round"/>
+    <path d="M240 322 Q256 338 272 322 Q256 330 240 322 Z" fill="#e2626e"/>
+    <!-- 前髪 -->
+    <path d="M136 250 C126 150 186 96 256 96 C326 96 386 150 376 250 C366 222 354 204 338 192 C340 214 334 230 324 240 C318 210 302 188 282 178 C284 200 276 214 266 222 C262 196 250 178 232 170 C230 194 220 212 204 222 C204 202 198 188 188 180 C172 196 158 214 150 236 C146 240 140 246 136 250 Z" fill="url(#hair)"/>
+    <path d="M190 120 C220 104 292 104 322 120" stroke="url(#hairHi)" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <!-- サイドの髪 -->
+    <path d="M150 236 C140 290 146 340 160 384 C150 332 156 290 166 248 Z" fill="#8f6040"/>
+    <path d="M362 236 C372 290 366 340 352 384 C362 332 356 290 346 248 Z" fill="#8f6040"/>
+    <!-- 白い花のヘアピン -->
+    <g transform="translate(150 178)">
+      <circle cx="0" cy="-16" r="11" fill="#ffffff"/>
+      <circle cx="15" cy="-5" r="11" fill="#ffffff"/>
+      <circle cx="9" cy="13" r="11" fill="#ffffff"/>
+      <circle cx="-9" cy="13" r="11" fill="#ffffff"/>
+      <circle cx="-15" cy="-5" r="11" fill="#ffffff"/>
+      <circle cx="0" cy="0" r="7" fill="#ffcf5a"/>
+    </g>
+  </g>
+</svg>
